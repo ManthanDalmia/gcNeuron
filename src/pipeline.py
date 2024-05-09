@@ -242,10 +242,10 @@ def load_dataset(name, fold=0, seed=45):
 
 
 def train_standard_model(name, layer_type='', aggr='', mode='default', custom_name='', custom_lr=None,
-                         custom_epochs=None, custom_es=0, fold=0, overwrite=False, custom_layers=None):
+                         custom_epochs=None, custom_es=0, fold=0, overwrite=False, custom_layers=None, seed = 45):
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model_dir = '../models/'
-    train_loader, test_loader, val_loader, dataset, _, _, _ = load_dataset(name, fold=fold)
+    train_loader, test_loader, val_loader, dataset, _, _, _ = load_dataset(name, fold=fold, seed= seed)
     lr = 0.001
 
     early_stop = 10000
