@@ -144,22 +144,34 @@ class SyntheticDataset(TUDataset):
 
 
 # load a dataset, with a specified fold for train-validation-test split
-def load_dataset(name, fold=0):
+def load_dataset(name, fold=0, seed=45):
     seeds1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     seeds2 = [123, 321, 420, 1234, 5121, 554, 3, 5, 6, 7, 11]
 
-    np.random.seed(seeds1[fold])
-    torch.random.manual_seed(seeds2[fold])
+    np.random.seed(seed)
+    torch.random.manual_seed(seed)
+    folder = f'../data/{name}'
+    import pickle
+    with open(f'{folder}/train_indices_{seed}.pkl', 'rb') as file:
+        train_indices = pickle.load(file)
+    with open(f'{folder}/test_indices_{seed}.pkl', 'rb') as file:
+        test_indices = pickle.load(file)
+    with open(f'{folder}/val_indices_{seed}.pkl', 'rb') as file:
+        val_indices = pickle.load(file)
+    
 
     if name == 'MUTAG':
         dataset = TUDataset(root='../data/TUDataset', name='MUTAG', use_edge_attr=True)
-        dataset = dataset.shuffle()
-        train_dataset = dataset[:120]
-        test_dataset = dataset[120:]
-        val_dataset = dataset[:120]
-        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-        test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-        val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+        train_dataset = dataset[train_indices]
+        test_dataset = dataset[test_indices]
+        val_dataset = dataset[val_indices]
+        # dataset = dataset.shuffle()
+        # train_dataset = dataset[:120]
+        # test_dataset = dataset[120:] 
+        # val_dataset = dataset[:120]
+        train_loader = DataLoader(train_dataset, batch_size=64, shuffle=False)
+        test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+        val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
     elif name == 'PROTEINS':
         dataset = TUDataset(root='../data/TUDataset', name='PROTEINS')
         dataset = dataset.shuffle()
@@ -171,17 +183,19 @@ def load_dataset(name, fold=0):
         val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
     elif name == 'MUTAGENICITY':
         dataset = TUDataset(root='../data/TUDataset', name='Mutagenicity')
-        dataset = dataset.shuffle()
-        train_dataset = dataset[:1500]
-        val_dataset = dataset[1500:1700]
-        test_dataset = dataset[1700:2200]
-        train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-        test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-        val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+        train_dataset = dataset[train_indices]
+        test_dataset = dataset[test_indices]
+        val_dataset = dataset[val_indices]
+        # dataset = dataset.shuffle()
+        # train_dataset = dataset[:1500]
+        # val_dataset = dataset[1500:1700]
+        # test_dataset = dataset[1700:2200]
+        train_loader = DataLoader(train_dataset, batch_size=64, shuffle=False)
+        test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+        val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
     elif name == 'REDDIT':
         dataset = TUDataset(root='../data/TUDataset', name='REDDIT-BINARY')
         dataset = dataset.shuffle()
-
         dataset_ = []
         for graph in dataset:
             graph.x = torch.ones((graph.num_nodes, 10))
